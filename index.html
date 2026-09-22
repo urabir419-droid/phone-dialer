@@ -1,0 +1,1393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+
+<meta name="theme-color" content="#000000">
+<meta name="description" content="Liquid Glass Dialer">
+
+<title>Phone</title>
+
+<style>
+:root{
+  --green:#30d158;
+  --white:#f5f5f7;
+  --gray:#8e8e93;
+  --line:rgba(255,255,255,.075);
+  --glass:rgba(255,255,255,.065);
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+
+*{
+  box-sizing:border-box;
+  -webkit-tap-highlight-color:transparent;
+  user-select:none;
+}
+
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  overflow:hidden;
+  background:#000;
+}
+
+body{
+  font-family:-apple-system,BlinkMacSystemFont,
+  "SF Pro Display","SF Pro Text","Segoe UI",sans-serif;
+  color:var(--white);
+}
+
+button{
+  font:inherit;
+}
+
+.app{
+  position:relative;
+  width:100%;
+  height:100dvh;
+  max-width:430px;
+  margin:auto;
+  overflow:hidden;
+  background:#000;
+}
+
+/* Subtle liquid light */
+
+.app::before{
+  content:"";
+  position:absolute;
+  width:390px;
+  height:390px;
+  left:-190px;
+  top:-180px;
+  border-radius:50%;
+  background:rgba(70,100,255,.075);
+  filter:blur(100px);
+  pointer-events:none;
+}
+
+.app::after{
+  content:"";
+  position:absolute;
+  width:340px;
+  height:340px;
+  right:-180px;
+  bottom:-150px;
+  border-radius:50%;
+  background:rgba(130,70,255,.065);
+  filter:blur(100px);
+  pointer-events:none;
+}
+
+/* SVG */
+
+svg{
+  width:100%;
+  height:100%;
+  display:block;
+}
+
+.icon{
+  width:22px;
+  height:22px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+/* Screens */
+
+.screen{
+  position:absolute;
+  inset:0;
+  display:none;
+  flex-direction:column;
+  padding-top:var(--safe-top);
+}
+
+.screen.active{
+  display:flex;
+  animation:screenIn .26s cubic-bezier(.22,.8,.25,1);
+}
+
+@keyframes screenIn{
+  from{
+    opacity:0;
+    transform:translateY(7px);
+  }
+  to{
+    opacity:1;
+    transform:none;
+  }
+}
+
+/* Header */
+
+.header{
+  height:78px;
+  padding:20px 21px 8px;
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+}
+
+.header h1{
+  margin:0;
+  font-size:32px;
+  line-height:1;
+  letter-spacing:-1.2px;
+  font-weight:700;
+}
+
+.header-button{
+  width:36px;
+  height:36px;
+  border:0;
+  border-radius:50%;
+  background:var(--glass);
+  color:#fff;
+  padding:9px;
+  backdrop-filter:blur(25px);
+  -webkit-backdrop-filter:blur(25px);
+  transition:.15s;
+}
+
+.header-button:active{
+  transform:scale(.88);
+  background:rgba(255,255,255,.14);
+}
+
+/* Search */
+
+.search{
+  height:36px;
+  margin:12px 18px 9px;
+  padding:0 12px;
+  border-radius:11px;
+  background:rgba(255,255,255,.065);
+  border:1px solid rgba(255,255,255,.045);
+  color:#85858b;
+  display:flex;
+  align-items:center;
+  gap:7px;
+  font-size:15px;
+  backdrop-filter:blur(25px);
+  -webkit-backdrop-filter:blur(25px);
+}
+
+.search .icon{
+  width:16px;
+  height:16px;
+  stroke-width:2;
+}
+
+/* Lists */
+
+.list{
+  flex:1;
+  overflow:auto;
+  padding:3px 18px 15px;
+}
+
+.row{
+  min-height:62px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  border-bottom:1px solid var(--line);
+}
+
+.avatar{
+  width:44px;
+  height:44px;
+  flex:none;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:16px;
+  font-weight:600;
+  color:#ddd;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.15),
+      rgba(255,255,255,.035)
+    );
+  border:1px solid rgba(255,255,255,.075);
+}
+
+.row-info{
+  flex:1;
+  min-width:0;
+}
+
+.row-name{
+  font-size:16px;
+  font-weight:500;
+  letter-spacing:-.15px;
+}
+
+.row-number{
+  margin-top:3px;
+  font-size:13px;
+  color:#85858b;
+}
+
+.call-mini{
+  width:36px;
+  height:36px;
+  border:0;
+  border-radius:50%;
+  background:rgba(255,255,255,.055);
+  color:var(--green);
+  padding:9px;
+  transition:.12s;
+}
+
+.call-mini:active{
+  transform:scale(.85);
+  background:rgba(255,255,255,.13);
+}
+
+/* Bottom navigation */
+
+.bottom{
+  height:calc(64px + var(--safe-bottom));
+  padding-bottom:var(--safe-bottom);
+  flex:none;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  background:rgba(12,12,14,.70);
+  border-top:1px solid rgba(255,255,255,.06);
+  backdrop-filter:blur(35px) saturate(160%);
+  -webkit-backdrop-filter:blur(35px) saturate(160%);
+}
+
+.nav{
+  position:relative;
+  border:0;
+  background:none;
+  color:#77777d;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
+  font-size:10px;
+  transition:color .2s,transform .2s;
+}
+
+.nav .icon{
+  width:23px;
+  height:23px;
+  stroke-width:1.7;
+}
+
+.nav.active{
+  color:#fff;
+}
+
+.nav:active{
+  transform:scale(.87);
+}
+
+/* Dialer */
+
+.dial-header{
+  height:62px;
+  flex:none;
+}
+
+.display{
+  flex:1;
+  min-height:100px;
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+  padding:0 20px 16px;
+}
+
+.number{
+  width:100%;
+  min-height:53px;
+  text-align:center;
+  white-space:nowrap;
+  overflow:hidden;
+  font-size:40px;
+  font-weight:300;
+  letter-spacing:.4px;
+  transition:font-size .2s ease;
+}
+
+.number.small{
+  font-size:28px;
+}
+
+.keypad{
+  flex:none;
+  padding:0 30px 8px;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:13px 20px;
+}
+
+.key{
+  position:relative;
+  width:100%;
+  aspect-ratio:1;
+  border-radius:50%;
+  border:1px solid rgba(255,255,255,.06);
+  color:#fff;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.10),
+      rgba(255,255,255,.032)
+    );
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.075),
+    0 5px 15px rgba(0,0,0,.24);
+
+  backdrop-filter:blur(25px);
+  -webkit-backdrop-filter:blur(25px);
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+
+  overflow:hidden;
+
+  transition:
+    transform .10s cubic-bezier(.2,.8,.2,1),
+    background .15s;
+}
+
+.key::after{
+  content:"";
+  position:absolute;
+  width:18px;
+  height:18px;
+  border-radius:50%;
+  background:rgba(255,255,255,.18);
+  opacity:0;
+  transform:scale(.1);
+}
+
+.key:active{
+  transform:scale(.91);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.19),
+      rgba(255,255,255,.06)
+    );
+}
+
+.key:active::after{
+  animation:ripple .35s ease-out;
+}
+
+@keyframes ripple{
+  0%{
+    opacity:.45;
+    transform:scale(.2);
+  }
+  100%{
+    opacity:0;
+    transform:scale(5);
+  }
+}
+
+.digit{
+  font-size:27px;
+  font-weight:300;
+  z-index:1;
+}
+
+.letters{
+  font-size:8px;
+  letter-spacing:2px;
+  color:#919198;
+  margin-top:2px;
+  z-index:1;
+}
+
+/* Call */
+
+.call-area{
+  height:91px;
+  flex:none;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+.call{
+  width:67px;
+  height:67px;
+  border:0;
+  border-radius:50%;
+  color:#fff;
+  background:linear-gradient(145deg,#42df72,#24b957);
+  box-shadow:
+    0 10px 28px rgba(48,209,88,.22),
+    inset 0 1px 1px rgba(255,255,255,.35);
+  padding:20px;
+  transition:.12s;
+}
+
+.call:active{
+  transform:scale(.88);
+}
+
+/* Incoming call */
+
+.incoming{
+  position:absolute;
+  inset:0;
+  z-index:50;
+  display:none;
+  flex-direction:column;
+  align-items:center;
+
+  background:
+    radial-gradient(
+      circle at 50% 22%,
+      rgba(80,100,255,.11),
+      transparent 42%
+    ),
+    rgba(0,0,0,.94);
+
+  backdrop-filter:blur(45px);
+  -webkit-backdrop-filter:blur(45px);
+}
+
+.incoming.show{
+  display:flex;
+  animation:incomingIn .38s cubic-bezier(.2,.8,.2,1);
+}
+
+@keyframes incomingIn{
+  from{
+    opacity:0;
+    transform:scale(1.025);
+  }
+  to{
+    opacity:1;
+    transform:none;
+  }
+}
+
+.incoming-label{
+  padding-top:65px;
+  color:#99999f;
+  font-size:14px;
+}
+
+.incoming-avatar{
+  width:112px;
+  height:112px;
+  margin-top:48px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:42px;
+  font-weight:600;
+  color:#ddd;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.17),
+      rgba(255,255,255,.035)
+    );
+
+  border:1px solid rgba(255,255,255,.1);
+
+  box-shadow:
+    0 25px 70px rgba(0,0,0,.5),
+    inset 0 1px 0 rgba(255,255,255,.15);
+}
+
+.incoming-name{
+  margin-top:20px;
+  font-size:30px;
+  font-weight:600;
+  letter-spacing:-.7px;
+}
+
+.incoming-number{
+  margin-top:5px;
+  color:#85858b;
+  font-size:14px;
+}
+
+/* Slider */
+
+.answer-container{
+  width:calc(100% - 44px);
+  margin-top:auto;
+  margin-bottom:45px;
+}
+
+.slider{
+  position:relative;
+  height:66px;
+  border-radius:35px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.09),
+      rgba(255,255,255,.03)
+    );
+
+  border:1px solid rgba(255,255,255,.075);
+
+  backdrop-filter:blur(30px);
+  -webkit-backdrop-filter:blur(30px);
+
+  overflow:hidden;
+}
+
+.slider-text{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#9b9ba2;
+  font-size:14px;
+  pointer-events:none;
+}
+
+.slider-knob{
+  position:absolute;
+  left:4px;
+  top:4px;
+  width:58px;
+  height:58px;
+  border-radius:50%;
+
+  background:
+    linear-gradient(
+      145deg,
+      #4ae978,
+      #24b952
+    );
+
+  box-shadow:
+    0 6px 22px rgba(48,209,88,.28),
+    inset 0 1px 1px rgba(255,255,255,.35);
+
+  padding:18px;
+  touch-action:none;
+}
+
+/* Active call */
+
+.calling{
+  position:absolute;
+  inset:0;
+  z-index:60;
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  background:#000;
+}
+
+.calling.show{
+  display:flex;
+  animation:screenIn .28s ease;
+}
+
+.call-status{
+  padding-top:65px;
+  color:var(--green);
+  font-size:14px;
+}
+
+.call-avatar{
+  width:108px;
+  height:108px;
+  margin-top:50px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:42px;
+  background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.08);
+}
+
+.call-name{
+  margin-top:18px;
+  font-size:28px;
+  font-weight:600;
+}
+
+.call-time{
+  margin-top:7px;
+  color:#77777e;
+}
+
+.call-controls{
+  margin-top:auto;
+  margin-bottom:50px;
+  display:flex;
+  gap:20px;
+}
+
+.control{
+  width:70px;
+  height:70px;
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:50%;
+  background:rgba(255,255,255,.065);
+  color:#fff;
+  padding:18px;
+  backdrop-filter:blur(25px);
+  -webkit-backdrop-filter:blur(25px);
+  transition:.15s;
+}
+
+.control.on{
+  background:#fff;
+  color:#111;
+}
+
+.control:active{
+  transform:scale(.9);
+}
+
+.end{
+  background:#ff3b30;
+  border-color:transparent;
+}
+
+/* Toast */
+
+.toast{
+  position:absolute;
+  z-index:100;
+  left:50%;
+  bottom:90px;
+  transform:translate(-50%,15px);
+  padding:9px 15px;
+  border-radius:17px;
+  background:rgba(35,35,38,.82);
+  border:1px solid rgba(255,255,255,.08);
+  backdrop-filter:blur(25px);
+  color:#ddd;
+  font-size:13px;
+  opacity:0;
+  pointer-events:none;
+  transition:.25s;
+}
+
+.toast.show{
+  opacity:1;
+  transform:translate(-50%,0);
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<!-- SVG ICON DEFINITIONS -->
+
+<svg width="0" height="0" style="position:absolute">
+<defs>
+
+<symbol id="i-clock" viewBox="0 0 24 24">
+<circle cx="12" cy="12" r="8.5"/>
+<path d="M12 7v5l3.2 2"/>
+</symbol>
+
+<symbol id="i-person" viewBox="0 0 24 24">
+<circle cx="12" cy="8" r="3.2"/>
+<path d="M5.5 19c.8-3.1 3.1-4.8 6.5-4.8s5.7 1.7 6.5 4.8"/>
+</symbol>
+
+<symbol id="i-star" viewBox="0 0 24 24">
+<path d="m12 4 2.3 4.7 5.2.8-3.8 3.7.9 5.2-4.6-2.4-4.6 2.4.9-5.2-3.8-3.7 5.2-.8z"/>
+</symbol>
+
+<symbol id="i-grid" viewBox="0 0 24 24">
+<circle cx="7" cy="7" r="1.3"/>
+<circle cx="12" cy="7" r="1.3"/>
+<circle cx="17" cy="7" r="1.3"/>
+<circle cx="7" cy="12" r="1.3"/>
+<circle cx="12" cy="12" r="1.3"/>
+<circle cx="17" cy="12" r="1.3"/>
+<circle cx="7" cy="17" r="1.3"/>
+<circle cx="12" cy="17" r="1.3"/>
+<circle cx="17" cy="17" r="1.3"/>
+</symbol>
+
+<symbol id="i-plus" viewBox="0 0 24 24">
+<path d="M12 5v14M5 12h14"/>
+</symbol>
+
+<symbol id="i-search" viewBox="0 0 24 24">
+<circle cx="10.8" cy="10.8" r="5.8"/>
+<path d="m15.2 15.2 4.2 4.2"/>
+</symbol>
+
+<symbol id="i-phone" viewBox="0 0 24 24">
+<path d="M6.7 4.5 9 4c.6-.1 1.1.2 1.3.8l1.1 3c.2.5 0 1-.4 1.3L9.5 10.3c.9 2 2.5 3.6 4.5 4.5l1.2-1.5c.3-.4.8-.6 1.3-.4l3 1.1c.6.2.9.7.8 1.3l-.5 2.3c-.1.7-.7 1.2-1.4 1.2C10.4 18.8 5.2 13.6 5.2 5.9c0-.7.5-1.3 1.5-1.4z"/>
+</symbol>
+
+<symbol id="i-arrow" viewBox="0 0 24 24">
+<path d="M5 12h13"/>
+<path d="m13 6 6 6-6 6"/>
+</symbol>
+
+<symbol id="i-mic" viewBox="0 0 24 24">
+<rect x="9" y="4" width="6" height="11" rx="3"/>
+<path d="M6 11a6 6 0 0 0 12 0M12 17v3M9 20h6"/>
+</symbol>
+
+<symbol id="i-speaker" viewBox="0 0 24 24">
+<path d="M5 10h4l5-4v12l-5-4H5z"/>
+<path d="M17 9a4 4 0 0 1 0 6"/>
+<path d="M19.5 6.5a8 8 0 0 1 0 11"/>
+</symbol>
+
+<symbol id="i-keypad" viewBox="0 0 24 24">
+<circle cx="7" cy="7" r="1"/>
+<circle cx="12" cy="7" r="1"/>
+<circle cx="17" cy="7" r="1"/>
+<circle cx="7" cy="12" r="1"/>
+<circle cx="12" cy="12" r="1"/>
+<circle cx="17" cy="12" r="1"/>
+<circle cx="7" cy="17" r="1"/>
+<circle cx="12" cy="17" r="1"/>
+<circle cx="17" cy="17" r="1"/>
+</symbol>
+
+<symbol id="i-end" viewBox="0 0 24 24">
+<path d="M6 9.5c3.8-2.2 8.2-2.2 12 0"/>
+<path d="M5.5 15.5 7.2 12M18.5 15.5 16.8 12"/>
+</symbol>
+
+</defs>
+</svg>
+
+
+<!-- RECENTS -->
+
+<section class="screen active" id="recents">
+
+<header class="header">
+<h1>Recents</h1>
+
+<button class="header-button">
+<svg class="icon">
+<use href="#i-plus"/>
+</svg>
+</button>
+</header>
+
+<div class="search">
+<svg class="icon"><use href="#i-search"/></svg>
+Search
+</div>
+
+<div class="list">
+
+<div class="row">
+<div class="avatar">A</div>
+<div class="row-info">
+<div class="row-name">Abir</div>
+<div class="row-number">Mobile · Today</div>
+</div>
+<button class="call-mini" onclick="incomingCall('Abir','01700 000000')">
+<svg class="icon"><use href="#i-phone"/></svg>
+</button>
+</div>
+
+<div class="row">
+<div class="avatar">S</div>
+<div class="row-info">
+<div class="row-name">Sakib</div>
+<div class="row-number">Mobile · Yesterday</div>
+</div>
+<button class="call-mini" onclick="incomingCall('Sakib','01900 000000')">
+<svg class="icon"><use href="#i-phone"/></svg>
+</button>
+</div>
+
+<div class="row">
+<div class="avatar">M</div>
+<div class="row-info">
+<div class="row-name">Mim</div>
+<div class="row-number">Mobile · Monday</div>
+</div>
+<button class="call-mini" onclick="incomingCall('Mim','01600 000000')">
+<svg class="icon"><use href="#i-phone"/></svg>
+</button>
+</div>
+
+</div>
+
+</section>
+
+
+<!-- CONTACTS -->
+
+<section class="screen" id="contacts">
+
+<header class="header">
+<h1>Contacts</h1>
+
+<button class="header-button">
+<svg class="icon"><use href="#i-plus"/></svg>
+</button>
+</header>
+
+<div class="search">
+<svg class="icon"><use href="#i-search"/></svg>
+Search
+</div>
+
+<div class="list">
+
+<div class="row">
+<div class="avatar">A</div>
+<div class="row-info">
+<div class="row-name">Abir</div>
+<div class="row-number">01700 000000</div>
+</div>
+<button class="call-mini" onclick="incomingCall('Abir','01700 000000')">
+<svg class="icon"><use href="#i-phone"/></svg>
+</button>
+</div>
+
+<div class="row">
+<div class="avatar">R</div>
+<div class="row-info">
+<div class="row-name">Rahim</div>
+<div class="row-number">01800 000000</div>
+</div>
+<button class="call-mini" onclick="incomingCall('Rahim','01800 000000')">
+<svg class="icon"><use href="#i-phone"/></svg>
+</button>
+</div>
+
+</div>
+
+</section>
+
+
+<!-- FAVORITES -->
+
+<section class="screen" id="favorites">
+
+<header class="header">
+<h1>Favorites</h1>
+</header>
+
+<div class="list">
+
+<div class="row">
+<div class="avatar">A</div>
+<div class="row-info">
+<div class="row-name">Abir</div>
+<div class="row-number">01700 000000</div>
+</div>
+<button class="call-mini" onclick="incomingCall('Abir','01700 000000')">
+<svg class="icon"><use href="#i-phone"/></svg>
+</button>
+</div>
+
+</div>
+
+</section>
+
+
+<!-- KEYPAD -->
+
+<section class="screen" id="keypad">
+
+<div class="dial-header"></div>
+
+<div class="display">
+<div id="number" class="number"></div>
+</div>
+
+<div class="keypad">
+
+<button class="key" onclick="press('1')">
+<span class="digit">1</span>
+</button>
+
+<button class="key" onclick="press('2')">
+<span class="digit">2</span>
+<span class="letters">ABC</span>
+</button>
+
+<button class="key" onclick="press('3')">
+<span class="digit">3</span>
+<span class="letters">DEF</span>
+</button>
+
+<button class="key" onclick="press('4')">
+<span class="digit">4</span>
+<span class="letters">GHI</span>
+</button>
+
+<button class="key" onclick="press('5')">
+<span class="digit">5</span>
+<span class="letters">JKL</span>
+</button>
+
+<button class="key" onclick="press('6')">
+<span class="digit">6</span>
+<span class="letters">MNO</span>
+</button>
+
+<button class="key" onclick="press('7')">
+<span class="digit">7</span>
+<span class="letters">PQRS</span>
+</button>
+
+<button class="key" onclick="press('8')">
+<span class="digit">8</span>
+<span class="letters">TUV</span>
+</button>
+
+<button class="key" onclick="press('9')">
+<span class="digit">9</span>
+<span class="letters">WXYZ</span>
+</button>
+
+<button class="key" onclick="press('*')">
+<span class="digit">*</span>
+</button>
+
+<button class="key" onclick="press('0')">
+<span class="digit">0</span>
+<span class="letters">+</span>
+</button>
+
+<button class="key" onclick="press('#')">
+<span class="digit">#</span>
+</button>
+
+</div>
+
+<div class="call-area">
+
+<button class="call" onclick="makeCall()">
+<svg class="icon">
+<use href="#i-phone"/>
+</svg>
+</button>
+
+</div>
+
+</section>
+
+
+<!-- INCOMING CALL -->
+
+<section class="incoming" id="incoming">
+
+<div class="incoming-label">
+Incoming Call
+</div>
+
+<div class="incoming-avatar" id="incomingAvatar">
+A
+</div>
+
+<div class="incoming-name" id="incomingName">
+Abir
+</div>
+
+<div class="incoming-number" id="incomingNumber">
+01700 000000
+</div>
+
+<div class="answer-container">
+
+<div class="slider" id="slider">
+
+<div class="slider-text">
+Slide to answer
+</div>
+
+<div class="slider-knob" id="sliderKnob">
+
+<svg class="icon">
+<use href="#i-arrow"/>
+</svg>
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+
+<!-- ACTIVE CALL -->
+
+<section class="calling" id="calling">
+
+<div class="call-status">
+Connected
+</div>
+
+<div class="call-avatar" id="callAvatar">
+A
+</div>
+
+<div class="call-name" id="callName">
+Abir
+</div>
+
+<div class="call-time" id="callTime">
+00:00
+</div>
+
+<div class="call-controls">
+
+<button class="control" id="muteBtn" onclick="toggleControl('muteBtn')">
+<svg class="icon"><use href="#i-mic"/></svg>
+</button>
+
+<button class="control" id="speakerBtn" onclick="toggleControl('speakerBtn')">
+<svg class="icon"><use href="#i-speaker"/></svg>
+</button>
+
+<button class="control" onclick="goToScreen('keypad')">
+<svg class="icon"><use href="#i-keypad"/></svg>
+</button>
+
+<button class="control end" onclick="endCall()">
+<svg class="icon"><use href="#i-phone"/></svg>
+</button>
+
+</div>
+
+</section>
+
+
+<div class="toast" id="toast"></div>
+
+</div>
+
+
+<script>
+
+/* NAVIGATION */
+
+const navItems=[
+  ["recents","i-clock","Recents"],
+  ["contacts","i-person","Contacts"],
+  ["favorites","i-star","Favorites"],
+  ["keypad","i-grid","Keypad"]
+];
+
+function goToScreen(id){
+  document
+    .querySelectorAll(".screen")
+    .forEach(x=>x.classList.remove("active"));
+
+  document
+    .getElementById(id)
+    .classList.add("active");
+}
+
+document.querySelectorAll(".screen").forEach(screen=>{
+
+  const bottom=document.createElement("nav");
+  bottom.className="bottom";
+
+  navItems.forEach(item=>{
+
+    const button=document.createElement("button");
+
+    button.className="nav";
+
+    if(screen.id===item[0]){
+      button.classList.add("active");
+    }
+
+    button.innerHTML=`
+      <svg class="icon">
+        <use href="#${item[1]}"/>
+      </svg>
+      <span>${item[2]}</span>
+    `;
+
+    button.onclick=()=>{
+      goToScreen(item[0]);
+    };
+
+    bottom.appendChild(button);
+
+  });
+
+  screen.appendChild(bottom);
+
+});
+
+
+/* TOAST */
+
+let toastTimer=null;
+
+function showToast(message){
+
+  const toast=document.getElementById("toast");
+
+  toast.textContent=message;
+  toast.classList.add("show");
+
+  clearTimeout(toastTimer);
+
+  toastTimer=setTimeout(()=>{
+    toast.classList.remove("show");
+  },1800);
+
+}
+
+
+/* DIAL PAD */
+
+let phone="";
+
+const number=
+document.getElementById("number");
+
+function press(value){
+
+  if(phone.length>=18)
+    return;
+
+  phone+=value;
+
+  number.textContent=phone;
+
+  if(phone.length>10)
+    number.classList.add("small");
+  else
+    number.classList.remove("small");
+
+  if(navigator.vibrate)
+    navigator.vibrate(7);
+
+}
+
+
+function makeCall(){
+
+  if(!phone){
+
+    showToast("Enter a number");
+
+    return;
+  }
+
+  startActiveCall(phone,phone);
+
+}
+
+
+/* INCOMING */
+
+const incoming=
+document.getElementById("incoming");
+
+let currentCaller={name:"Abir",num:"01700 000000"};
+
+function incomingCall(name,num){
+
+  currentCaller={name,num};
+
+  document.getElementById("incomingName").textContent=name;
+  document.getElementById("incomingNumber").textContent=num;
+  document.getElementById("incomingAvatar").textContent=name.charAt(0).toUpperCase();
+
+  resetSliderPosition();
+
+  incoming.classList.add("show");
+
+}
+
+function declineCall(){
+
+  incoming.classList.remove("show");
+  showToast("Call declined");
+
+}
+
+
+/* SLIDER (slide to answer) */
+
+const slider=
+document.getElementById("slider");
+
+const knob=
+document.getElementById("sliderKnob");
+
+let dragging=false;
+let startX=0;
+let knobX=0;
+
+function maxKnobTravel(){
+  return slider.clientWidth-knob.clientWidth-8;
+}
+
+function resetSliderPosition(){
+  knobX=0;
+  knob.style.transform="translateX(0px)";
+}
+
+function setKnobX(x){
+
+  const max=maxKnobTravel();
+
+  knobX=Math.max(0,Math.min(x,max));
+
+  knob.style.transform=`translateX(${knobX}px)`;
+
+}
+
+knob.addEventListener("pointerdown",e=>{
+
+  dragging=true;
+  startX=e.clientX-knobX;
+
+  knob.setPointerCapture(e.pointerId);
+
+});
+
+
+knob.addEventListener("pointermove",e=>{
+
+  if(!dragging)
+    return;
+
+  const rect=slider.getBoundingClientRect();
+  const relativeX=e.clientX-startX;
+
+  setKnobX(relativeX);
+
+  const max=maxKnobTravel();
+
+  if(max>0 && knobX>=max-2){
+    dragging=false;
+    answerCall();
+  }
+
+});
+
+
+function endDrag(e){
+
+  if(!dragging)
+    return;
+
+  dragging=false;
+
+  const max=maxKnobTravel();
+
+  if(max<=0 || knobX<max-2){
+    resetSliderPosition();
+  }
+
+}
+
+knob.addEventListener("pointerup",endDrag);
+knob.addEventListener("pointercancel",endDrag);
+
+
+function answerCall(){
+
+  incoming.classList.remove("show");
+
+  startActiveCall(currentCaller.name,currentCaller.num);
+
+}
+
+
+/* ACTIVE CALL */
+
+const calling=document.getElementById("calling");
+const callTimeEl=document.getElementById("callTime");
+
+let callSeconds=0;
+let callTimerInterval=null;
+
+function startActiveCall(name,num){
+
+  document.getElementById("callName").textContent=name;
+  document.getElementById("callAvatar").textContent=name.charAt(0).toUpperCase();
+
+  callSeconds=0;
+  callTimeEl.textContent="00:00";
+
+  clearInterval(callTimerInterval);
+
+  callTimerInterval=setInterval(()=>{
+
+    callSeconds++;
+
+    const m=String(Math.floor(callSeconds/60)).padStart(2,"0");
+    const s=String(callSeconds%60).padStart(2,"0");
+
+    callTimeEl.textContent=`${m}:${s}`;
+
+  },1000);
+
+  calling.classList.add("show");
+
+}
+
+function endCall(){
+
+  clearInterval(callTimerInterval);
+
+  calling.classList.remove("show");
+
+  phone="";
+  number.textContent="";
+  number.classList.remove("small");
+
+  document
+    .querySelectorAll(".control")
+    .forEach(c=>c.classList.remove("on"));
+
+  showToast("Call ended");
+
+  goToScreen("recents");
+
+}
+
+function toggleControl(id){
+
+  document.getElementById(id).classList.toggle("on");
+
+}
+
+</script>
+
+</body>
+</html>
